@@ -2,6 +2,7 @@ import mysklearn.myutils as myutils
 import numpy as np
 import math
 import random
+import copy
 
 def train_test_split(X, y, test_size=0.33, random_state=None, shuffle=True):
     """Split dataset into train and test sets (sublists) based on a test set size.
@@ -39,7 +40,9 @@ def train_test_split(X, y, test_size=0.33, random_state=None, shuffle=True):
         # your use of random_state or shuffle, but you should still 
         # implement this and check your work yourself
         for i in range(len(X)):
-            rand_index = np.random.uniform(0, len(X), len(X)) # [0, len(X))
+            
+            rand_index = random.randrange(len(X))
+            #np.random.uniform(0, len(X), len(X)) # [0, len(X))
             X[i], X[rand_index] = X[rand_index], X[i]
             y[i], y[rand_index] = y[rand_index], y[i]
         pass
@@ -86,11 +89,9 @@ def kfold_cross_validation(X, n_splits=5):
     for i in range(n_splits):
         fold = []
         folds.append(fold)
-
     fold_index = 0
     # for fold in folds:
     for i in range(len(X)):
-        # fold_index = random.randrange(n_splits)
 
         if fold_index == n_splits:
             fold_index = 0
@@ -99,19 +100,25 @@ def kfold_cross_validation(X, n_splits=5):
         # print(fold) 
         fold_index += 1
 
-    test = True
-    X_train_folds = []
+    X_train_folds = folds
+    folds_copy = copy.copy(folds)
+   
+    # folds_copy.reverse()
     X_test_folds = []
-    for fold in folds:
-        if test == True:
-            X_test_folds.append(fold)
-            test = False
-        else:
-            X_train_folds.append(fold)
+
+    # for fold in folds:
+    #     X_test_folds.append(fold)
+    
+    for fold in folds_copy[::-1]:
+        X_test_folds.append(fold)
 
     
     
+    # print(folds)
+    # print(X_train_folds)
+    # print(X_test_folds)
     return X_train_folds, X_test_folds # TODO: fix this
+    # return [[1, 3], [0, 2]], [[0, 2], [1, 3]] # TODO: fix this
 
 def stratified_kfold_cross_validation(X, y, n_splits=5):
     """Split dataset into stratified cross validation folds.
@@ -136,8 +143,47 @@ def stratified_kfold_cross_validation(X, y, n_splits=5):
         loop through folds
         add every instance from group to every fold
     """
+    print("called")
+    folds = []
+    for i in range(n_splits):
+        fold = []
+        folds.append(fold)
+    
+    #add  y to x
+    for i, instance in enumerate(X):
+        # append the class label
+        instance.append(y[i])
+        instance.append(i)
+    #groupby
+    group_names = sorted(list(set(y))) 
+    group_subtables = [[] for _ in group_names]
+    for row in X:
+        group_by_value = row[-2]
+        group_index = group_names.index(group_by_value)
+        index = row.pop()
+        group_subtables[group_index].append(index) # shallow copy
+    
+    #add every instance to every fold
+    for group in group_subtables:
+        fold_index = 0
+        for i in range(len(group)):
+            if fold_index == n_splits:
+                fold_index = 0
+            folds[fold_index].append(group[i])
+            fold_index += 1
+   
+    folds_copy = folds
+    test_folds = []
+    for i in folds_copy:
+        test_folds.insert(0, i)
+    X_train_folds = folds
+    X_test_folds = folds
+    print(X_test_folds)
+    print(X_train_folds)
+    print(test_folds)
 
-    return [], [] # TODO: fix this
+
+    return X_train_folds, X_test_folds # TODO: fix this
 
 def confusion_matrix(y_true, y_pred, labels):
     """Compute confusion matrix to evaluate the accuracy of a classification.
@@ -158,7 +204,3 @@ def confusion_matrix(y_true, y_pred, labels):
         Loosely based on sklearn's confusion_matrix(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html
     """
     return [] # TODO: fix this
-
-def printer(calc, actual):
-    print(calc, actual)
-    pass

@@ -1,6 +1,26 @@
 # TODO: your reusable general-purpose functions here
 import math 
-import numpy as np 
+import numpy as np
+import importlib
+import copy
+
+
+# import mysklearn.myutils
+# importlib.reload(mysklearn.myutils)
+# import mysklearn.myutils as myutils
+
+# # uncomment once you paste your mypytable.py into mysklearn package
+import mysklearn.mypytable
+importlib.reload(mysklearn.mypytable)
+from mysklearn.mypytable import MyPyTable 
+
+# import mysklearn.myclassifiers
+# importlib.reload(mysklearn.myclassifiers)
+# from mysklearn.myclassifiers import MyKNeighborsClassifier, MySimpleLinearRegressor
+
+# import mysklearn.myevaluation
+# importlib.reload(mysklearn.myevaluation)
+# import mysklearn.myevaluation as myevaluation
 
 
 def get_column(table, header, col_name):
@@ -11,12 +31,6 @@ def get_column(table, header, col_name):
         if row[col_index] != "NA":
             col.append(row[col_index])
     return col
-
-def get_min_max(values):
-    # you can return multiple values
-    # via a tuple (immutable list that is often used for packing and unpacking
-    # values)
-    return min(values), max(values)
 
 def get_frequencies(table, header, col_name):
     col = get_column(table, header, col_name)
@@ -107,7 +121,86 @@ def compute_slope_intercept(x, y):
     return m, b 
 
 def compute_euclidean_distance(v1, v2):
+    print(v1, v2)
     assert len(v1) == len(v2)
 
     dist = np.sqrt(sum([(v1[i] - v2[i]) ** 2 for i in range(len(v1))]))
     return dist 
+
+#pa3 add-ons
+#
+#
+
+def conv_num(mypy):
+    mypy.convert_to_numeric
+    pass
+
+def load_data(filename):
+    mypytable = MyPyTable()
+    mypytable.load_from_file(filename)
+    return mypytable
+
+# warmup task
+def get_col(mypy, col_name):
+    return mypy.get_column(col_name, False)
+
+def get_min_max(values):
+    return min(values), max(values)
+
+def binary_freq(mypy, col_name):
+    mypy.convert_to_numeric()
+    col = get_col(mypy, col_name)
+    freq = 0
+    for i in range(len(col)):
+        if col[i] == 1:
+            freq += 1
+
+    return col_name, freq
+
+def percent_compare(mypy, col_names, total, get_sum=True):
+    conv_num(mypy)
+    percentages = []
+    if get_sum == False:
+        for i in range(len(col_names)):
+            col = get_col(mypy, col_names[i])
+            col2 = []
+            for j in range(len(col)):
+                if col[j] != 0:
+                    col2.append(col[j])
+            col_total = len(col2)
+            prcnt = col_total / total
+            percentages.append(prcnt)
+    if get_sum == True:
+        for i in range(len(col_names)):
+            col = get_col(mypy, col_names[i])
+            col_total = sum(col)
+            prcnt = col_total / total
+            percentages.append(prcnt)
+    return col_names, percentages
+
+# pa4 add-ons
+#
+#
+def mpg_rating(val):
+    rating = 0
+    if val <=13:
+        rating = 1
+    elif val == 14:
+        rating = 2
+    elif 15 <= val < 17:
+        rating = 3
+    elif 17 <= val < 20:
+        rating = 4
+    elif 20 <= val < 24:
+        rating = 5
+    elif 24 <= val < 27:
+        rating = 6
+    elif 27 <= val < 31:
+        rating = 7
+    elif 31 <= val < 37:
+        rating = 8
+    elif 37 <= val < 45:
+        rating = 9
+    elif val >= 45:
+        rating = 10
+    return rating
