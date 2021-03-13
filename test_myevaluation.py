@@ -60,6 +60,7 @@ def check_folds(n, n_splits, train_folds, test_folds, train_folds_solution, test
     # make sure fold train on appropriate number of indices
     all_train_indices.sort()
     all_train_indices_solution.sort()
+    myevaluation.printer(all_train_indices, all_train_indices_solution)
     assert all_train_indices == all_train_indices_solution
 
 def test_kfold_cross_validation():
