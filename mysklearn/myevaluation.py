@@ -8,18 +8,18 @@ def train_test_split(X, y, test_size=0.33, random_state=None, shuffle=True):
     """Split dataset into train and test sets (sublists) based on a test set size.
 
     Args:
-        X(list of list of obj): The list of samples
-            The shape of X is (n_samples, n_features)
+        X(list of list of obj): The list of sample_sizes
+            The shape of X is (n_sample_sizes, n_features)
         y(list of obj): The target y values (parallel to X)
-            The shape of y is n_samples
+            The shape of y is n_sample_sizes
         test_size(float or int): float for proportion of dataset to be in test set (e.g. 0.33 for a 2:1 split)
             or int for absolute number of instances to be in test set (e.g. 5 for 5 instances in test set)
         random_state(int): integer used for seeding a random number generator for reproducible results
         shuffle(bool): whether or not to randomize the order of the instances before splitting
 
     Returns:
-        X_train(list of list of obj): The list of training samples
-        X_test(list of list of obj): The list of testing samples
+        X_train(list of list of obj): The list of training sample_sizes
+        X_test(list of list of obj): The list of testing sample_sizes
         y_train(list of obj): The list of target y values for training (parallel to X_train)
         y_test(list of obj): The list of target y values for testing (parallel to X_test)
     
@@ -27,25 +27,21 @@ def train_test_split(X, y, test_size=0.33, random_state=None, shuffle=True):
         Loosely based on sklearn's train_test_split(): https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html
     """
     if random_state is not None:
-       # TODO: seed your random number generator
-       # you can use the math module or use numpy for your generator
-       # choose one and consistently use that generator throughout your code
-       np.random.seed(random_state)
+       np.random.seed(0) 
        pass
-    
-    if shuffle: 
-        # TODO: shuffle the rows in X and y before splitting
-        # be sure to maintain the parallel order of X and y!!
-        # note: the unit test for train_test_split() does not test
-        # your use of random_state or shuffle, but you should still 
-        # implement this and check your work yourself
-        for i in range(len(X)):
-            
-            rand_index = random.randrange(len(X))
-            #np.random.uniform(0, len(X), len(X)) # [0, len(X))
-            X[i], X[rand_index] = X[rand_index], X[i]
-            y[i], y[rand_index] = y[rand_index], y[i]
-        pass
+  
+    if shuffle:
+       # TODO: shuffle the rows in X and y before splitting
+       # be sure to maintain the parallel order of X and y!!
+       # note: the unit test for train_test_split() does not test
+       # your use of random_state or shuffle, but you should still
+       # implement this and check your work yourself
+       for i in range(len(X)):
+           rand_index = random.randrange(0, len(X)) # [0, len(X))
+           X[i], X[rand_index] = X[rand_index], X[i] # this is the temporary value swap but in one line
+           if y is not None:
+               y[i], y[rand_index] = y[rand_index], y[i]
+       pass
     
     num_instances = len(X) # 8
     if isinstance(test_size, float):
@@ -58,8 +54,8 @@ def kfold_cross_validation(X, n_splits=5):
     """Split dataset into cross validation folds.
 
     Args:
-        X(list of list of obj): The list of samples
-            The shape of X is (n_samples, n_features)
+        X(list of list of obj): The list of sample_sizes
+            The shape of X is (n_sample_sizes, n_features)
         n_splits(int): Number of folds.
 
     Returns:
@@ -67,9 +63,9 @@ def kfold_cross_validation(X, n_splits=5):
         X_test_folds(list of list of int): The list of testing set indices for each fold
 
     Notes: 
-        The first n_samples % n_splits folds have size n_samples // n_splits + 1, 
-            other folds have size n_samples // n_splits, where n_samples is the number of samples
-            (e.g. 11 samples and 4 splits, the sizes of the 4 folds are 3, 3, 3, 2 samples)
+        The first n_sample_sizes % n_splits folds have size n_sample_sizes // n_splits + 1, 
+            other folds have size n_sample_sizes // n_splits, where n_sample_sizes is the number of sample_sizes
+            (e.g. 11 sample_sizes and 4 splits, the sizes of the 4 folds are 3, 3, 3, 2 sample_sizes)
         Loosely based on sklearn's KFold split(): https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html
     
     1. make fold list
@@ -85,49 +81,39 @@ def kfold_cross_validation(X, n_splits=5):
             keep track of predictions
     lecture 3/2 42:00
     """
-    folds = []
-    for i in range(n_splits):
-        fold = []
-        folds.append(fold)
-    fold_index = 0
-    # for fold in folds:
-    for i in range(len(X)):
-
-        if fold_index == n_splits:
-            fold_index = 0
-        folds[fold_index].append(i)
-        # print("this is fold: ", fold_index)
-        # print(fold) 
-        fold_index += 1
-
-    X_train_folds = folds
-    folds_copy = copy.copy(folds)
-   
-    # folds_copy.reverse()
+    #calc number of folds needed
+    n = len(X)
+    num_folds = n % n_splits
+    #initiate train and test
+    X_train_folds = []
     X_test_folds = []
+    sample_size = []
 
-    # for fold in folds:
-    #     X_test_folds.append(fold)
-    
-    for fold in folds_copy[::-1]:
-        X_test_folds.append(fold)
+    for i in range(n_splits):
+        if i >= num_folds:
+            sample_size.append(n // n_splits)
+        else:
+            sample_size.append((n // n_splits) + 1)
 
-    
-    
-    # print(folds)
-    # print(X_train_folds)
-    # print(X_test_folds)
-    return X_train_folds, X_test_folds # TODO: fix this
-    # return [[1, 3], [0, 2]], [[0, 2], [1, 3]] # TODO: fix this
+    for i in range(n_splits):
+        indices = [j for  j in range(len(X))]
+        range_size = sample_size[i]
+        start_index = sum(sample_size[n] for n in range(i))
+        test_fold = [k for k in range(start_index, start_index + range_size)]
+        X_test_folds.append(test_fold)
+        del indices[start_index:start_index + range_size]
+        X_train_folds.append(indices)
+ 
+    return X_train_folds, X_test_folds
 
 def stratified_kfold_cross_validation(X, y, n_splits=5):
     """Split dataset into stratified cross validation folds.
 
     Args:
-        X(list of list of obj): The list of instances (samples). 
-            The shape of X is (n_samples, n_features)
+        X(list of list of obj): The list of instances (sample_sizes). 
+            The shape of X is (n_sample_sizes, n_features)
         y(list of obj): The target y values (parallel to X). 
-            The shape of y is n_samples
+            The shape of y is n_sample_sizes
         n_splits(int): Number of folds.
  
     Returns:
@@ -143,64 +129,66 @@ def stratified_kfold_cross_validation(X, y, n_splits=5):
         loop through folds
         add every instance from group to every fold
     """
-    print("called")
-    folds = []
-    for i in range(n_splits):
-        fold = []
-        folds.append(fold)
-    
-    #add  y to x
-    for i, instance in enumerate(X):
-        # append the class label
-        instance.append(y[i])
-        instance.append(i)
-    #groupby
-    group_names = sorted(list(set(y))) 
-    group_subtables = [[] for _ in group_names]
-    for row in X:
-        group_by_value = row[-2]
-        group_index = group_names.index(group_by_value)
-        index = row.pop()
-        group_subtables[group_index].append(index) # shallow copy
-    
-    #add every instance to every fold
+    total_folds = [[] for _ in range(n_splits)]
+    X_train_folds = [[] for _ in range(n_splits)]
+    X_test_folds = [[] for _ in range(n_splits)]
+
+    #group by
+    y_list, counts = myutils.get_freq_1col(y)
+    group_subtables = [[] for _ in y_list]
+    for i, val in enumerate(y):
+        for j, label in enumerate(y_list):
+            if val == label:
+                group_subtables[j].append(i)
+ 
+    curr = 0
     for group in group_subtables:
-        fold_index = 0
-        for i in range(len(group)):
-            if fold_index == n_splits:
-                fold_index = 0
-            folds[fold_index].append(group[i])
-            fold_index += 1
-   
-    folds_copy = folds
-    test_folds = []
-    for i in folds_copy:
-        test_folds.insert(0, i)
-    X_train_folds = folds
-    X_test_folds = folds
-    print(X_test_folds)
-    print(X_train_folds)
-    print(test_folds)
+        for i in group:
+            total_folds[curr].append(i)
+            curr = (curr + 1) % n_splits
+    curr = 0
+    for j in range(n_splits):
+        for i, fold in enumerate(total_folds):
+            if(i != j):
+                for val in fold:
+                    X_train_folds[curr].append(val)
+            else:
+                X_test_folds[curr] = fold
+        curr += 1
+ 
+    return X_train_folds, X_test_folds
 
-
-    return X_train_folds, X_test_folds # TODO: fix this
 
 def confusion_matrix(y_true, y_pred, labels):
     """Compute confusion matrix to evaluate the accuracy of a classification.
 
     Args:
         y_true(list of obj): The ground_truth target y values
-            The shape of y is n_samples
+            The shape of y is n_sample_sizes
         y_pred(list of obj): The predicted target y values (parallel to y_true)
-            The shape of y is n_samples
+            The shape of y is n_sample_sizes
         labels(list of str): The list of all possible target y labels used to index the matrix
 
     Returns:
         matrix(list of list of int): Confusion matrix whose i-th row and j-th column entry 
-            indicates the number of samples with true label being i-th class 
+            indicates the number of sample_sizes with true label being i-th class 
             and predicted label being j-th class
 
     Notes:
         Loosely based on sklearn's confusion_matrix(): https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html
     """
-    return [] # TODO: fix this
+    matrix = []
+    for _ in range(len(labels)):
+        matrix_row = []
+        for _ in range(len(labels)):
+            matrix_row.append(0)
+        matrix.append(matrix_row)
+ 
+    for i in range(len(labels)):
+        label = labels[i]
+        for j in range(len(y_true)):
+            if y_true[j] == label:
+                index = labels.index(y_pred[j])
+                matrix[i][index] = matrix[i][index] + 1
+    return matrix
+
